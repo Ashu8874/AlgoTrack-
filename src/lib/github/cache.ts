@@ -1,0 +1,33 @@
+import { getRedisClient } from "@/lib/redis";
+
+const CACHE_TTL_SECONDS = 15 * 60;
+
+export async function getCachedValue<T>(key: string): Promise<T | null> {
+  try {
+    const client = await getRedisClient();
+    const cached = await client.get(key);
+    if (!cached) {
+      return null;
+    }
+
+    return JSON.parse(cached) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function setCachedValue<T>(key: string, value: T, ttlSeconds = CACHE_TTL_SECONDS) {
+  try {
+    const client = await getRedisClient();
+    await client.setex(key, ttlSeconds, JSON.stringify(value));
+  } catch {
+    return null;
+  }
+}
+
+export function getGitHubCacheKey(operation: string, username: string, suffix = "") {
+  const normalizedUsername = username.trim().toLowerCase();
+  return `github:${operation}:${normalizedUsername}${suffix ? `:${suffix}` : ""}`;
+}
+
+export const GITHUB_CACHE_TTL_SECONDS = CACHE_TTL_SECONDS;
