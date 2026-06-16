@@ -9,7 +9,7 @@ import { Loader2, Plus } from "lucide-react";
 
 interface SettingsFormProps {
   currentUsername: string;
-  userEmail: string;
+  userEmail: string; // Keep for future use
 }
 
 export function SettingsForm({ currentUsername, userEmail }: SettingsFormProps) {
@@ -45,7 +45,7 @@ export function SettingsForm({ currentUsername, userEmail }: SettingsFormProps) 
       } else {
         setMessage({ type: "error", text: data.error || "Failed to connect account" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "An error occurred. Please try again." });
     } finally {
       setIsLoading(false);

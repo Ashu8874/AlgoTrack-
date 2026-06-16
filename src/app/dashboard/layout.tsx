@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Navbar user={session.user} />
+        <Navbar />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>

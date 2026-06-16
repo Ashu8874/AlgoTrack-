@@ -18,7 +18,7 @@ type WeaknessChartProps = {
   stats: LeetCodeSolvedStats | null;
 };
 
-export function WeaknessChart({ stats }: WeaknessChartProps) {
+export function WeaknessChart({ stats: _stats }: WeaknessChartProps) {
   const skillStats: SkillData[] = [];
 
   // Get top 5 weakest topics (sorted by solved count ascending)

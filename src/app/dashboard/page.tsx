@@ -84,7 +84,7 @@ export default async function DashboardPage() {
             🎉 Your LeetCode account is connected!
           </h2>
           <p className="text-muted-foreground">
-            We're currently building out the full dashboard experience with charts, analytics, 
+            We&apos;re currently building out the full dashboard experience with charts, analytics, 
             and AI-powered insights. Check back soon for updates!
           </p>
         </div>

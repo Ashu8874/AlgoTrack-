@@ -32,6 +32,7 @@ export function LeetCodeAccountCard({ username }: LeetCodeAccountCardProps) {
   useEffect(() => {
     // Verify account on mount
     verifyAccount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function verifyAccount() {
@@ -77,7 +78,7 @@ export function LeetCodeAccountCard({ username }: LeetCodeAccountCardProps) {
       } else {
         setMessage({ type: "error", text: data.error || "Failed to update username" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "An error occurred. Please try again." });
     } finally {
       setIsLoading(false);
@@ -106,7 +107,7 @@ export function LeetCodeAccountCard({ username }: LeetCodeAccountCardProps) {
       } else {
         setMessage({ type: "error", text: "Failed to disconnect account" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "An error occurred" });
     } finally {
       setIsLoading(false);
