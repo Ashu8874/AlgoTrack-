@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth-utils";
-import { getContestInfo } from "@/lib/leetcode";
+import { getDashboardData } from "@/lib/leetcode";
 import { ContestsClient } from "./contests-client";
 
 export default async function ContestsPage() {
@@ -8,7 +8,7 @@ export default async function ContestsPage() {
   if (!user) redirect("/auth/login");
   if (!user.leetcodeUsername) redirect("/dashboard/settings");
 
-  const contest = await getContestInfo(user.leetcodeUsername);
+  const { contest } = await getDashboardData(user.leetcodeUsername);
 
   return <ContestsClient contest={contest} username={user.leetcodeUsername} />;
 }

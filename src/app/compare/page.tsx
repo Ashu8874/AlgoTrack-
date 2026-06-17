@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getContestInfo, getSolvedStats, getSubmissionCalendar, getUserProfile } from "@/lib/leetcode";
+import { getDashboardData } from "@/lib/leetcode";
 import { buildComparisonReport } from "@/lib/analysis";
 import { CompareForm } from "@/features/compare/components/compare-form";
 import { ComparisonResults } from "@/features/compare/components/comparison-results";
@@ -39,12 +39,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
 
   const comparisonInputs = await Promise.all(
     users.map(async (username) => {
-      const [profile, solvedStats, contestInfo, submissionCalendar] = await Promise.all([
-        getUserProfile(username),
-        getSolvedStats(username),
-        getContestInfo(username),
-        getSubmissionCalendar(username),
-      ]);
+      const { profile, stats: solvedStats, contest: contestInfo, calendar: submissionCalendar } = await getDashboardData(username);
 
       return {
         username,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDailyDigest } from "@/lib/groq";
-import { getSolvedStats, getContestInfo, getSubmissionCalendar, getUserProfile } from "@/lib/leetcode";
+import { getDashboardData } from "@/lib/leetcode";
+import { getCached, setCached } from "@/lib/redis";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,12 +10,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "username required" }, { status: 400 });
     }
 
-    const [profile, stats, contest, calendar] = await Promise.all([
-      getUserProfile(username),
-      getSolvedStats(username),
-      getContestInfo(username),
-      getSubmissionCalendar(username),
-    ]);
+    const cacheKey = `api:ai:digest:${username}`;
+    const cachedDigest = await getCached<{ digest: string }>(cacheKey);
+    if (cachedDigest) {
+      return NextResponse.json(cachedDigest);
+    }
+
+    const { profile, stats, contest, calendar } = await getDashboardData(username);
 
     const ac = stats.matchedUser?.submitStatsGlobal?.acSubmissionNum ?? [];
     const total = ac.find((e) => e.difficulty === "All")?.count ?? 0;
@@ -34,7 +36,9 @@ export async function GET(request: NextRequest) {
       "Dynamic Programming, Graphs",
     );
 
-    return NextResponse.json({ digest: digest ?? "Keep grinding — consistency is your edge today." });
+    const payload = { digest: digest ?? "Keep grinding — consistency is your edge today." };
+    await setCached(cacheKey, payload, 600);
+    return NextResponse.json(payload);
   } catch (error) {
     return NextResponse.json(
       { digest: "Your progress is building. Focus on one topic deeply today." },

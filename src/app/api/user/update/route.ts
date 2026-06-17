@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { connectMongoose } from "@/lib/mongoose";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { invalidateLeetCodeCache } from "@/lib/leetcode/cache";
 
 const updateSchema = z.object({
   leetcodeUsername: z.string().min(1, "LeetCode username is required"),
@@ -25,6 +26,18 @@ export async function POST(request: Request) {
 
     // Lazy load User model
     const { User } = await import("@/models/user");
+
+    const existingUser = await User.findOne({ email: session.user.email });
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    if (existingUser.leetcodeUsername && existingUser.leetcodeUsername !== leetcodeUsername.toLowerCase()) {
+      await invalidateLeetCodeCache(existingUser.leetcodeUsername);
+    }
 
     const user = await User.findOneAndUpdate(
       { email: session.user.email },

@@ -9,6 +9,7 @@ import {
 } from "./cache";
 import {
   CONTEST_INFO_QUERY,
+  DASHBOARD_QUERY,
   DAILY_CHALLENGE_QUERY,
   LANGUAGE_STATS_QUERY,
   RECENT_SUBMISSIONS_QUERY,
@@ -31,6 +32,61 @@ import {
   type LeetCodeTopicStats,
   type LeetCodeUserProfileResponse,
 } from "./types";
+
+type LeetCodeDashboardResponse = {
+  allQuestionsCount: Array<{ difficulty: string; count: number }>;
+  matchedUser: {
+    username: string;
+    profile: {
+      realName?: string | null;
+      ranking?: number | null;
+      userAvatar?: string | null;
+    } | null;
+    submitStatsGlobal: {
+      acSubmissionNum: Array<{ difficulty: string; count: number; submissions: number }>;
+      totalSubmissionNum: Array<{ difficulty: string; count: number; submissions: number }>;
+    } | null;
+    userCalendar: {
+      activeYears: number[];
+      streak?: number | null;
+      totalActiveDays?: number | null;
+      dccBadges: Array<{
+        timestamp: number;
+        badge: { name?: string | null; icon?: string | null } | null;
+      }>;
+      submissionCalendar: string;
+    } | null;
+    tagProblemCounts: {
+      advanced: Array<{ tagName: string; tagSlug: string; problemsSolved: number }>;
+      intermediate: Array<{ tagName: string; tagSlug: string; problemsSolved: number }>;
+      fundamental: Array<{ tagName: string; tagSlug: string; problemsSolved: number }>;
+    } | null;
+    languageProblemCount: Array<{ languageName: string; problemsSolved: number }> | null;
+    problemsSolvedBeatsStats: Array<{ difficulty: string; percentage: number }> | null;
+  } | null;
+  userContestRanking: {
+    attendedContestsCount?: number | null;
+    rating?: number | null;
+    globalRanking?: number | null;
+    totalParticipants?: number | null;
+    topPercentage?: number | null;
+    badge: { name?: string | null } | null;
+  } | null;
+  userContestRankingHistory: Array<{
+    attended?: boolean | null;
+    trendDirection?: string | null;
+    problemsSolved?: number | null;
+    totalProblems?: number | null;
+    finishTimeInSeconds?: number | null;
+    rating?: number | null;
+    ranking?: number | null;
+    contest: {
+      title?: string | null;
+      titleSlug?: string | null;
+      startTime?: number | null;
+    } | null;
+  }>;
+};
 
 async function getOrCreateCachedData<T>(
   cacheKey: string,
@@ -67,6 +123,79 @@ export async function getUserProfile(username: string): Promise<LeetCodeMatchedU
     }
 
     return leetCodeSchemas.matchedUserProfileSchema.parse(data.matchedUser);
+  });
+}
+
+export async function getDashboardData(username: string) {
+  const cacheKey = getLeetCodeCacheKey("dashboard", username);
+
+  return getOrCreateCachedData(cacheKey, async () => {
+    const year = new Date().getFullYear();
+    const data = await executeLeetCodeGraphQL<LeetCodeDashboardResponse>({
+      operationName: "dashboard",
+      query: DASHBOARD_QUERY,
+      variables: { username, year },
+    });
+
+    if (!data.matchedUser) {
+      throw new LeetCodeNotFoundError(username);
+    }
+
+    const profile = leetCodeSchemas.matchedUserProfileSchema.parse({
+      username: data.matchedUser.username,
+      profile: data.matchedUser.profile ?? null,
+      contestBadge: null,
+    });
+
+    const stats = leetCodeSchemas.solvedStatsResponseSchema.parse({
+      allQuestionsCount: data.allQuestionsCount,
+      matchedUser: {
+        submitStatsGlobal: data.matchedUser.submitStatsGlobal,
+        submitStats: data.matchedUser.submitStatsGlobal,
+      },
+    });
+
+    const contest = leetCodeSchemas.contestInfoResponseSchema.parse({
+      matchedUser: null,
+      userContestRanking: data.userContestRanking,
+      userContestRankingHistory: data.userContestRankingHistory,
+    });
+
+    const calendar = leetCodeSchemas.submissionCalendarResponseSchema.parse({
+      matchedUser: {
+        userCalendar: data.matchedUser.userCalendar,
+      },
+    });
+
+    const topicStats = leetCodeSchemas.topicStatsResponseSchema.parse({
+      matchedUser: {
+        tagProblemCounts: data.matchedUser.tagProblemCounts,
+      },
+    });
+
+    const languages: LeetCodeLanguageStat[] = (data.matchedUser.languageProblemCount ?? []).map((language) => ({
+      language: language.languageName,
+      solved: language.problemsSolved,
+    })).sort((a, b) => b.solved - a.solved);
+
+    const beats: LeetCodeBeatsStats = {
+      easy:
+        data.matchedUser.problemsSolvedBeatsStats?.find((item) => item.difficulty === "Easy")?.percentage ?? 0,
+      medium:
+        data.matchedUser.problemsSolvedBeatsStats?.find((item) => item.difficulty === "Medium")?.percentage ?? 0,
+      hard:
+        data.matchedUser.problemsSolvedBeatsStats?.find((item) => item.difficulty === "Hard")?.percentage ?? 0,
+    };
+
+    return {
+      profile,
+      stats,
+      contest,
+      calendar,
+      topicStats,
+      languages,
+      beats,
+    };
   });
 }
 
@@ -253,12 +382,7 @@ export async function getFriendsProfiles(usernames: string[]) {
   return Promise.all(
     usernames.map(async (username) => {
       try {
-        const [profile, stats, contest, calendar] = await Promise.all([
-          getUserProfile(username),
-          getSolvedStats(username),
-          getContestInfo(username),
-          getSubmissionCalendar(username),
-        ]);
+        const { profile, stats, contest, calendar } = await getDashboardData(username);
         return { username, profile, stats, contest, calendar, error: null };
       } catch (error) {
         return {

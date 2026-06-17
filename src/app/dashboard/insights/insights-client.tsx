@@ -13,7 +13,7 @@ import { CustomTooltip } from "@/components/charts/custom-tooltip";
 import { fadeUp } from "@/lib/animations";
 
 interface Snapshot {
-  date: Date;
+  date: string;
   totalSolved: number;
 }
 

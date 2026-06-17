@@ -1,12 +1,4 @@
-import {
-  getContestInfo,
-  getLanguageStats,
-  getSolvedBeats,
-  getSolvedStats,
-  getSubmissionCalendar,
-  getTopicStats,
-  getUserProfile,
-} from "@/lib/leetcode";
+import { getDashboardData } from "@/lib/leetcode";
 import { getSnapshotHistory } from "@/lib/repositories/legacy";
 import { getGoals, getUser } from "@/lib/repositories";
 import { DashboardHome } from "./dashboard-home";
@@ -19,19 +11,12 @@ type DashboardPageProps = {
 
 export async function DashboardPage({ username }: DashboardPageProps) {
   try {
-    const [profile, stats, contest, calendar, topicStats, languages, beats, snapshots] = await Promise.all([
-      getUserProfile(username),
-      getSolvedStats(username),
-      getContestInfo(username),
-      getSubmissionCalendar(username),
-      getTopicStats(username),
-      getLanguageStats(username),
-      getSolvedBeats(username),
+    const [{ profile, stats, contest, calendar, topicStats, languages, beats }, snapshots] = await Promise.all([
+      getDashboardData(username),
       getSnapshotHistory(username, 60),
     ]);
 
-    const user = await getUser({ leetcodeUsername: username });
-    if (user) await getGoals(user._id);
+    await getUser({ leetcodeUsername: username });
 
     return (
       <DashboardHome

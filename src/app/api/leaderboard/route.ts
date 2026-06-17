@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { requireAuthUser } from "@/lib/auth-utils";
 import { User } from "@/models/user";
 import { getFriendsProfiles } from "@/lib/leetcode";
+import { getCached, setCached } from "@/lib/redis";
 
 function parseCalendar(calendarJson?: string) {
   if (!calendarJson) return new Map<string, number>();
@@ -37,6 +38,13 @@ export async function GET() {
   try {
     const user = await requireAuthUser();
     await connectDB();
+
+    const cacheKey = `api:leaderboard:${user._id}`;
+    const cachedLeaderboard = await getCached<{ leaderboard: Array<Record<string, unknown>> }>(cacheKey);
+    if (cachedLeaderboard) {
+      return NextResponse.json(cachedLeaderboard);
+    }
+
     const freshUser = await User.findById(user._id);
     const friends = freshUser?.friends ?? [];
     const usernames = [
@@ -70,6 +78,7 @@ export async function GET() {
     });
 
     leaderboard.sort((a, b) => b.totalSolved - a.totalSolved);
+    await setCached(cacheKey, { leaderboard }, 120);
     return NextResponse.json({ leaderboard });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed";

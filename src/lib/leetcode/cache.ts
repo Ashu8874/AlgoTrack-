@@ -1,4 +1,4 @@
-import { getRedisClient } from "@/lib/redis";
+import { getRedisClient, invalidateCache } from "@/lib/redis";
 
 const CACHE_TTL_SECONDS = 15 * 60;
 
@@ -28,6 +28,11 @@ export async function setCachedValue<T>(key: string, value: T, ttlSeconds = CACH
 export function getLeetCodeCacheKey(operation: string, username: string, suffix = "") {
   const normalizedUsername = username.trim().toLowerCase();
   return `leetcode:${operation}:${normalizedUsername}${suffix ? `:${suffix}` : ""}`;
+}
+
+export async function invalidateLeetCodeCache(username: string) {
+  const normalizedUsername = username.trim().toLowerCase();
+  await invalidateCache(`leetcode:*:${normalizedUsername}*`);
 }
 
 export const LEETCODE_CACHE_TTL_SECONDS = CACHE_TTL_SECONDS;

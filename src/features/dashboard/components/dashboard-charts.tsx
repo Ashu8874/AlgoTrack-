@@ -33,7 +33,7 @@ interface DashboardChartsProps {
   contest: LeetCodeContestInfo;
   calendar: LeetCodeSubmissionCalendar;
   topicStats: LeetCodeTopicStats;
-  snapshots: Array<{ date: Date; totalSolved: number }>;
+  snapshots: Array<{ date: string; totalSolved: number }>;
 }
 
 const TOPIC_COLORS = ["#7C3AED", "#22D3EE", "#34D399", "#FBBF24", "#F87171", "#F472B6", "#818CF8", "#2DD4BF"];

@@ -1,4 +1,4 @@
-import { getSolvedStats } from "@/lib/leetcode";
+import { getDashboardData } from "@/lib/leetcode";
 import { handleApiError, jsonSuccess, usernameParamSchema } from "@/lib/api/route-utils";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export async function GET(
 ) {
   try {
     const { username } = usernameParamSchema.parse(await params);
-    const stats = await getSolvedStats(username);
+    const { stats } = await getDashboardData(username);
 
     return jsonSuccess({
       username,

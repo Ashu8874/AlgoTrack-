@@ -151,6 +151,97 @@ export const TOPIC_STATS_QUERY = /* GraphQL */ `
   }
 `;
 
+export const DASHBOARD_QUERY = /* GraphQL */ `
+  query dashboard($username: String!, $year: Int!) {
+    allQuestionsCount {
+      difficulty
+      count
+    }
+    matchedUser(username: $username) {
+      username
+      profile {
+        realName
+        ranking
+        userAvatar
+      }
+      submitStatsGlobal: submitStatsGlobal {
+        acSubmissionNum {
+          difficulty
+          count
+          submissions
+        }
+        totalSubmissionNum {
+          difficulty
+          count
+          submissions
+        }
+      }
+      userCalendar(year: $year) {
+        activeYears
+        streak
+        totalActiveDays
+        dccBadges {
+          timestamp
+          badge {
+            name
+            icon
+          }
+        }
+        submissionCalendar
+      }
+      tagProblemCounts {
+        advanced {
+          tagName
+          tagSlug
+          problemsSolved
+        }
+        intermediate {
+          tagName
+          tagSlug
+          problemsSolved
+        }
+        fundamental {
+          tagName
+          tagSlug
+          problemsSolved
+        }
+      }
+      languageProblemCount {
+        languageName
+        problemsSolved
+      }
+      problemsSolvedBeatsStats {
+        difficulty
+        percentage
+      }
+    }
+    userContestRanking(username: $username) {
+      attendedContestsCount
+      rating
+      globalRanking
+      totalParticipants
+      topPercentage
+      badge {
+        name
+      }
+    }
+    userContestRankingHistory(username: $username) {
+      attended
+      trendDirection
+      problemsSolved
+      totalProblems
+      finishTimeInSeconds
+      rating
+      ranking
+      contest {
+        title
+        titleSlug
+        startTime
+      }
+    }
+  }
+`;
+
 export const RECENT_SUBMISSIONS_QUERY = /* GraphQL */ `
   query getRecentSubmissions($username: String!, $limit: Int!) {
     recentSubmissionList(username: $username, limit: $limit) {

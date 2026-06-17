@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Navbar } from "@/components/layout/navbar";
+import ChatWidget from "@/components/chatbot/ChatWidget";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -23,6 +24,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
         <Navbar />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
+      <ChatWidget />
     </div>
   );
 }

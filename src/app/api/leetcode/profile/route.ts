@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserProfile, getSolvedStats, getContestInfo, getSubmissionCalendar } from "@/lib/leetcode";
+import { getDashboardData } from "@/lib/leetcode";
 import { getCached, setCached } from "@/lib/redis";
 import { saveSnapshot } from "@/lib/repositories/legacy";
+import { invalidateLeetCodeCache } from "@/lib/leetcode/cache";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,12 +18,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    const [profile, stats, contest, calendar] = await Promise.all([
-      getUserProfile(username),
-      getSolvedStats(username),
-      getContestInfo(username),
-      getSubmissionCalendar(username),
-    ]);
+    await invalidateLeetCodeCache(username);
+    const { profile, stats, contest, calendar } = await getDashboardData(username);
 
     const ac = stats.matchedUser?.submitStatsGlobal?.acSubmissionNum ?? [];
     const totalSolved = ac.find((e) => e.difficulty === "All")?.count ?? 0;

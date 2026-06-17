@@ -17,7 +17,7 @@ const envSchema = z.object({
   TELEGRAM_CHAT_ID: z.string().optional().default(""),
   TELEGRAM_API_BASE_URL: z.string().url().default("https://api.telegram.org"),
   GROQ_API_KEY: z.string().optional().default(""),
-  GROQ_MODEL: z.string().min(1).default("llama3-70b-8192"),
+  GROQ_MODEL: z.string().min(1).default("openai/gpt-oss-20b"),
   NEXTAUTH_SECRET: z.string().optional().default(""),
   NEXTAUTH_URL: z.string().url().optional().default("http://localhost:3000"),
 });

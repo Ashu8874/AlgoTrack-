@@ -56,7 +56,20 @@ export async function getSnapshotHistory(username: string, days = 30) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    return await Snapshot.find({ username, date: { $gte: startDate } }).sort({ date: 1 });
+    const snapshots = await Snapshot.find({ username, date: { $gte: startDate } })
+      .sort({ date: 1 })
+      .lean();
+
+    return snapshots.map((snapshot) => ({
+      date: snapshot.date instanceof Date ? snapshot.date.toISOString() : String(snapshot.date),
+      totalSolved: snapshot.totalSolved,
+      easySolved: snapshot.easySolved,
+      mediumSolved: snapshot.mediumSolved,
+      hardSolved: snapshot.hardSolved,
+      rating: snapshot.rating,
+      streak: snapshot.streak,
+      submissionCount: snapshot.submissionCount,
+    }));
   } catch (error) {
     console.error("[Repository] Get snapshot history error:", error);
     return [];

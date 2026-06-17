@@ -35,7 +35,7 @@ interface DashboardHomeProps {
   topicStats: LeetCodeTopicStats;
   languages: LeetCodeLanguageStat[];
   beats: LeetCodeBeatsStats;
-  snapshots: Array<{ date: Date; totalSolved: number }>;
+  snapshots: Array<{ date: string; totalSolved: number }>;
 }
 
 function getGreeting() {

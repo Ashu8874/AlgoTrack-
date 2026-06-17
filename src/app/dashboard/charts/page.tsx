@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth-utils";
 import { getSnapshotHistory } from "@/lib/repositories/legacy";
-import { getContestInfo, getSolvedStats, getSubmissionCalendar, getTopicStats } from "@/lib/leetcode";
+import { getDashboardData } from "@/lib/leetcode";
 import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts";
 
 export default async function ChartsPage() {
@@ -9,11 +9,8 @@ export default async function ChartsPage() {
   if (!user) redirect("/auth/login");
   if (!user.leetcodeUsername) redirect("/dashboard/settings");
 
-  const [stats, contest, calendar, topicStats, snapshots] = await Promise.all([
-    getSolvedStats(user.leetcodeUsername),
-    getContestInfo(user.leetcodeUsername),
-    getSubmissionCalendar(user.leetcodeUsername),
-    getTopicStats(user.leetcodeUsername),
+  const [{ stats, contest, calendar, topicStats }, snapshots] = await Promise.all([
+    getDashboardData(user.leetcodeUsername),
     getSnapshotHistory(user.leetcodeUsername, 120),
   ]);
 

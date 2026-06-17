@@ -6,7 +6,7 @@ import { buildAnalyzeProfileMessages, buildGenerateDailyDigestMessages, buildGen
 import { aiSchemas, type DailyDigest, type ProfileInsight, type Roadmap } from "./types";
 import { generateGroqJson } from "./client";
 
-const MODEL = env.GROQ_MODEL || "llama3-70b-8192";
+const MODEL = env.GROQ_MODEL;
 
 export async function analyzeProfile(input: Omit<AnalyzeProfileInput, "profile" | "solvedStats" | "contestInfo" | "submissionCalendar" | "topicStats"> & {
   profile?: AnalyzeProfileInput["profile"];
