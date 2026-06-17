@@ -9,6 +9,11 @@ export interface ChatMessage {
   isStreaming?: boolean;
 }
 
+interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -46,7 +51,7 @@ export function useChat() {
     setIsLoading(true);
     setError(null);
 
-    const history = [...messages, userMessage]
+    const history: ConversationMessage[] = [...messages, userMessage]
       .slice(-10)
       .map((message) => ({ role: message.role, content: message.content }));
 
@@ -105,9 +110,13 @@ export function useChat() {
           }
         }
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        setError(error?.message || 'Could not send your message. Please try again.');
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        setError(error.message || 'Could not send your message. Please try again.');
+        setMessages((prev) => prev.filter((message) => message.id !== assistantId));
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        const err = error as { message?: string };
+        setError(err.message || 'Could not send your message. Please try again.');
         setMessages((prev) => prev.filter((message) => message.id !== assistantId));
       }
     } finally {

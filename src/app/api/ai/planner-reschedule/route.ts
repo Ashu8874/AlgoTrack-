@@ -21,7 +21,7 @@ const updatedDailyTasksSchema = z.object({
   ),
 });
 
-function buildFallbackUpdatedTasks(body: Record<string, unknown>) {
+function buildFallbackUpdatedTasks() {
   return {
     dailyTasks: {
       monday: { topic: "Review", problems: 1, type: "review" },
@@ -36,11 +36,11 @@ function buildFallbackUpdatedTasks(body: Record<string, unknown>) {
 export async function POST(request: Request) {
   try {
     const user = await requireAuthUser();
-    const body = await request.json();
+    const requestBody = await request.json();
     const prompt = `The user missed study tasks. Reschedule the remaining days in valid JSON only.
-Remaining days: ${JSON.stringify(body.remainingDays)}
-Missed tasks: ${JSON.stringify(body.missedTasks)}
-Current plan excerpt: ${JSON.stringify(body.currentWeek)}
+Remaining days: ${JSON.stringify(requestBody.remainingDays)}
+Missed tasks: ${JSON.stringify(requestBody.missedTasks)}
+Current plan excerpt: ${JSON.stringify(requestBody.currentWeek)}
 Return a JSON object with "dailyTasks" keyed by weekday for the remaining days.`;
 
     let updated;
@@ -54,7 +54,7 @@ Return a JSON object with "dailyTasks" keyed by weekday for the remaining days.`
       });
     } catch (error) {
       console.error("Planner reschedule parse error:", error);
-      updated = buildFallbackUpdatedTasks(body);
+      updated = buildFallbackUpdatedTasks();
     }
 
     await connectDB();

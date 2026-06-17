@@ -76,7 +76,6 @@ export default async function SettingsPage() {
                 </div>
                 <SettingsForm 
                   currentUsername="" 
-                  userEmail={user.email}
                 />
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { getDashboardData } from "@/lib/leetcode";
 import { getSnapshotHistory } from "@/lib/repositories/legacy";
-import { getGoals, getUser } from "@/lib/repositories";
+import { getUser } from "@/lib/repositories";
 import { DashboardHome } from "./dashboard-home";
 import { Ghost } from "lucide-react";
 import Link from "next/link";

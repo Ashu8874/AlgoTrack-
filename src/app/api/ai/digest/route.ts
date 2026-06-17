@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const payload = { digest: digest ?? "Keep grinding — consistency is your edge today." };
     await setCached(cacheKey, payload, 600);
     return NextResponse.json(payload);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { digest: "Your progress is building. Focus on one topic deeply today." },
       { status: 200 },

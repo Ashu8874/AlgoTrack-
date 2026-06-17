@@ -9,10 +9,9 @@ import { Loader2, Plus } from "lucide-react";
 
 interface SettingsFormProps {
   currentUsername: string;
-  userEmail: string; // Keep for future use
 }
 
-export function SettingsForm({ currentUsername, userEmail }: SettingsFormProps) {
+export function SettingsForm({ currentUsername }: SettingsFormProps) {
   const [leetcodeUsername, setLeetcodeUsername] = useState(currentUsername);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);

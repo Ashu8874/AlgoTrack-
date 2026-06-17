@@ -40,7 +40,7 @@ function buildFallbackPlan(body: Record<string, unknown>) {
   const weakTopics = Array.isArray(body.weakTopics)
     ? (body.weakTopics as string[]).filter(Boolean)
     : String(body.weakTopics || "Arrays, Dynamic Programming").split(/,\s*/).filter(Boolean);
-  const goal = String(body.goal || "Improve coding interview readiness");
+  // const goal = String(body.goal || "Improve coding interview readiness");
 
   const weeksUntilInterview = Math.max(
     1,

@@ -93,7 +93,7 @@ export default function RegisterPage() {
       }
 
       router.push("/auth/login?registered=true");
-    } catch (err) {
+    } catch {
       setErrors({ submit: "An error occurred. Please try again." });
     } finally {
       setIsLoading(false);

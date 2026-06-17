@@ -107,7 +107,10 @@ export function ContestsClient({ contest, username }: ContestsClientProps) {
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(true);
 
-  const history = contest.userContestRankingHistory ?? [];
+  const history = useMemo(
+    () => contest.userContestRankingHistory ?? [],
+    [contest.userContestRankingHistory],
+  );
   const ratingPoints = useMemo(() => buildRatingJourney(history), [history]);
   const ranking = contest.userContestRanking;
 

@@ -98,7 +98,7 @@ async function checkDatabase() {
     log(colors.cyan, '🔌 Connection closed\n');
 
   } catch (error) {
-    const err = error as any;
+    const err = error instanceof Error ? error : new Error(String(error));
     
     // Determine error type
     let errorType = '❌ Connection Failed';

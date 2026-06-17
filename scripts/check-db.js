@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 /**
  * Database Connection Checker (Simple JavaScript Version)
@@ -120,7 +121,7 @@ async function checkDatabase() {
           console.log(`   • ${col.name}`);
         });
       }
-    } catch (e) {
+    } catch {
       // Skip collection listing if not available
     }
 

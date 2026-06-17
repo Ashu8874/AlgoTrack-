@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
       }
 
       setSubmitted(true);
-    } catch (err) {
+    } catch {
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);

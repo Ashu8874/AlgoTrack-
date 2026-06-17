@@ -45,11 +45,6 @@ type StudyPlanContext = {
   interviewDate?: Date | string;
 };
 
-function normalizeTopicList(topics: string[] | null | undefined) {
-  if (!topics || topics.length === 0) return "No strong topics yet";
-  return topics.join(", ");
-}
-
 function normalizeSubmissionList(submissions: Array<{ title: string; status: string; timestamp: number }> = []) {
   return submissions
     .slice(0, 5)

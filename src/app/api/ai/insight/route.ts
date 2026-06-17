@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { env } from "@/lib/env";
-import { getSolvedStats } from "@/lib/leetcode";
 
 const defaultInsights = [
   "Keep grinding! Your consistent effort on LeetCode is building strong problem-solving skills. Focus on quality over quantity.",
