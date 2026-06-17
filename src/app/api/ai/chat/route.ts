@@ -11,6 +11,23 @@ import { getDashboardData, getTopicStats, getContestInfo, getRecentSubmissions }
 import { buildSystemPrompt, type ChatHistoryItem } from "@/lib/chatContext";
 import Groq from "groq-sdk";
 
+type LeetCodeACStat = {
+  difficulty: string;
+  count: number;
+  submissions: number;
+};
+
+type TopicProblemCount = {
+  tagName: string;
+  tagSlug: string;
+  problemsSolved: number;
+};
+
+type ErrorWithStatus = {
+  status?: number;
+  message?: string;
+};
+
 import { env } from "@/lib/env";
 
 function getGroqClient() {
@@ -97,30 +114,30 @@ export async function POST(request: NextRequest) {
       ? JSON.parse(submissionsRaw)
       : await getRecentSubmissions(username, 5);
 
-    const acStats =
+    const acStats: LeetCodeACStat[] =
       dashboardData?.matchedUser?.submitStatsGlobal?.acSubmissionNum ?? [];
-    const totalSolved = acStats.find((s: any) => s.difficulty === "All")?.count ?? 0;
-    const easySolved = acStats.find((s: any) => s.difficulty === "Easy")?.count ?? 0;
-    const mediumSolved = acStats.find((s: any) => s.difficulty === "Medium")?.count ?? 0;
-    const hardSolved = acStats.find((s: any) => s.difficulty === "Hard")?.count ?? 0;
+    const totalSolved = acStats.find((s) => s.difficulty === "All")?.count ?? 0;
+    const easySolved = acStats.find((s) => s.difficulty === "Easy")?.count ?? 0;
+    const mediumSolved = acStats.find((s) => s.difficulty === "Medium")?.count ?? 0;
+    const hardSolved = acStats.find((s) => s.difficulty === "Hard")?.count ?? 0;
     const currentStreak = dashboardData?.matchedUser?.userCalendar?.streak ?? 0;
     const maxStreak = dashboardData?.matchedUser?.userCalendar?.totalActiveDays ?? 0;
     const contestRating = contestData?.userContestRanking?.rating ?? "N/A";
     const globalRanking = contestData?.userContestRanking?.globalRanking ?? "N/A";
 
-    const tags = [
+    const tags: TopicProblemCount[] = [
       ...(topicStatsData?.matchedUser?.tagProblemCounts?.advanced ?? []),
       ...(topicStatsData?.matchedUser?.tagProblemCounts?.intermediate ?? []),
       ...(topicStatsData?.matchedUser?.tagProblemCounts?.fundamental ?? []),
     ];
 
-    const sortedBySolved = tags.slice().sort((a: any, b: any) => a.problemsSolved - b.problemsSolved);
-    const weakTopics = sortedBySolved.slice(0, 3).map((topic: any) => topic.tagName);
+    const sortedBySolved = tags.slice().sort((a: TopicProblemCount, b: TopicProblemCount) => a.problemsSolved - b.problemsSolved);
+    const weakTopics = sortedBySolved.slice(0, 3).map((topic) => topic.tagName);
     const strongTopics = tags
       .slice()
-      .sort((a: any, b: any) => b.problemsSolved - a.problemsSolved)
+      .sort((a: TopicProblemCount, b: TopicProblemCount) => b.problemsSolved - a.problemsSolved)
       .slice(0, 3)
-      .map((topic: any) => topic.tagName);
+      .map((topic) => topic.tagName);
 
     const recentText = normalizeSubmissionList(recentSubmissions);
     const goals = await getGoals(user._id);
@@ -188,7 +205,7 @@ export async function POST(request: NextRequest) {
       temperature: 0.75,
       max_tokens: 1024,
       stream: true,
-    }) as AsyncIterable<any>;
+    }) as AsyncIterable<Groq.Chat.ChatCompletionChunk>;
 
     const encoder = new TextEncoder();
     let fullResponse = "";
@@ -236,10 +253,18 @@ export async function POST(request: NextRequest) {
         Connection: "keep-alive",
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
-    const message = error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
-    const status = typeof error?.status === "number" ? error.status : 500;
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+        ? error
+        : JSON.stringify(error);
+    const status =
+      typeof (error as ErrorWithStatus)?.status === "number"
+        ? (error as ErrorWithStatus).status
+        : 500;
 
     return new Response(JSON.stringify({ error: message }), {
       status,
