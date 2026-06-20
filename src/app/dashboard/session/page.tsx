@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { CustomTooltip } from "@/components/charts/custom-tooltip";
 import { ChartGradients } from "@/components/charts/chart-gradients";
+import SessionDebrief from "@/components/ai/SessionDebrief";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,6 +187,8 @@ export default function SessionPage() {
   const [elapsed, setElapsed] = useState(0);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [showSolvedPrompt, setShowSolvedPrompt] = useState(false);
+  const [debriefOpen, setDebriefOpen] = useState(false);
+  const [lastSession, setLastSession] = useState<SessionRecord | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("completedAt");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -260,6 +263,19 @@ export default function SessionPage() {
         }),
       });
       if (res.ok) {
+        setLastSession({
+          _id: "local",
+          problem: problem.trim(),
+          problemSlug: problem.trim().toLowerCase().replace(/\s+/g, "-"),
+          difficulty,
+          durationSeconds: elapsed,
+          solved,
+          hintsUsed: 0,
+          notes: "",
+          startedAt: startedAt?.toISOString() ?? new Date().toISOString(),
+          completedAt: new Date().toISOString(),
+        });
+        setDebriefOpen(true);
         await fetchSessions();
         setProblem("");
         handleReset();
@@ -592,6 +608,18 @@ export default function SessionPage() {
           </table>
         </div>
       </motion.div>
+
+      {debriefOpen && lastSession ? (
+        <SessionDebrief
+          problem={lastSession.problem}
+          difficulty={lastSession.difficulty}
+          durationMinutes={Math.max(1, Math.round(lastSession.durationSeconds / 60))}
+          solved={lastSession.solved}
+          hintsUsed={lastSession.hintsUsed}
+          notes={lastSession.notes}
+          onClose={() => setDebriefOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

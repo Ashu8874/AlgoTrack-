@@ -23,6 +23,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import RevisionPriority from "@/components/ai/RevisionPriority";
 import { CustomTooltip } from "@/components/charts/custom-tooltip";
 import { ChartGradients } from "@/components/charts/chart-gradients";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -96,6 +97,19 @@ export default function RevisionPage() {
     });
     return map;
   }, [data?.all]);
+
+  const dueProblems = useMemo(
+    () =>
+      (data?.all ?? []).map((item) => ({
+        title: item.problemTitle,
+        slug: item.problemSlug,
+        dueInDays: Math.max(
+          0,
+          Math.ceil((new Date(item.nextReviewDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+        ),
+      })),
+    [data?.all],
+  );
 
   const stackedData = useMemo(() => {
     const difficulties: Difficulty[] = ["Easy", "Medium", "Hard"];
@@ -178,6 +192,7 @@ export default function RevisionPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        <RevisionPriority dueProblems={dueProblems} />
         <motion.div {...fadeUp} className="glass-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-white">

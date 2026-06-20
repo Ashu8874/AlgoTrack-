@@ -22,6 +22,7 @@ import { CustomTooltip } from "@/components/charts/custom-tooltip";
 import { ChartGradients } from "@/components/charts/chart-gradients";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import TopicCoach from "@/components/ai/TopicCoach";
 import { fadeUp } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
@@ -111,6 +112,18 @@ export function TopicsClient({ username, topicStats, solvedStats, submissions }:
   }, [topics]);
 
   const solvedByDiff = getSolvedByDifficulty(solvedStats);
+
+  const acceptanceRate = useMemo(() => {
+    const accepted = solvedStats?.matchedUser?.submitStatsGlobal?.acSubmissionNum?.reduce(
+      (sum, item) => sum + (item?.count ?? 0),
+      0,
+    ) ?? 0;
+    const total = solvedStats?.matchedUser?.submitStatsGlobal?.totalSubmissionNum?.reduce(
+      (sum, item) => sum + (item?.count ?? 0),
+      0,
+    ) ?? 0;
+    return total ? Math.round((accepted / total) * 100) : 0;
+  }, [solvedStats]);
 
   const fetchInsight = async () => {
     if (!selected) return;
@@ -220,6 +233,15 @@ export function TopicsClient({ username, topicStats, solvedStats, submissions }:
                 </p>
               </motion.div>
             )}
+
+            <motion.div {...fadeUp} className="glass-card p-5">
+              <h3 className="mb-2 text-sm font-semibold text-white">Topic Coaching</h3>
+              <TopicCoach
+                topicName={selected.tagName}
+                solved={selected.problemsSolved}
+                acceptanceRate={acceptanceRate}
+              />
+            </motion.div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               <motion.div {...fadeUp} className="glass-card p-5">

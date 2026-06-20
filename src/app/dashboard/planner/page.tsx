@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import PlannerNudge from "@/components/ai/PlannerNudge";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
@@ -126,6 +127,28 @@ export default function PlannerPage() {
 
   const plan = studyPlan?.plan;
   const todayKey = getTodayKey();
+
+  const todayCompleted = useMemo(
+    () =>
+      studyPlan?.completedDays.filter(
+        (d) => d.date === new Date().toISOString().split("T")[0],
+      ).length ?? 0,
+    [studyPlan?.completedDays],
+  );
+
+  const streak = useMemo(() => {
+    if (!studyPlan?.completedDays.length) return 0;
+    const solved = new Set(studyPlan.completedDays.map((d) => d.date));
+    let count = 0;
+    const day = new Date();
+    while (true) {
+      const key = day.toISOString().split("T")[0];
+      if (!solved.has(key)) break;
+      count += 1;
+      day.setDate(day.getDate() - 1);
+    }
+    return count;
+  }, [studyPlan?.completedDays]);
 
   const daysUntilInterview = useMemo(() => {
     if (!studyPlan?.interviewDate) return 0;
@@ -402,6 +425,10 @@ export default function PlannerPage() {
           </div>
         </div>
       </motion.div>
+
+      <PlannerNudge currentPlan={plan?.weeklyPlans ?? []} todayCompleted={todayCompleted} streak={streak} />
+
+      <PlannerNudge currentPlan={plan?.weeklyPlans ?? []} todayCompleted={todayCompleted} streak={streak} />
 
       {error && <p className="text-sm text-[var(--red-400)]">{error}</p>}
 

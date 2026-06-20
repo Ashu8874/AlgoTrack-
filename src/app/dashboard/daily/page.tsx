@@ -20,6 +20,7 @@ import { ChartGradients } from "@/components/charts/chart-gradients";
 import { CustomTooltip } from "@/components/charts/custom-tooltip";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import DailyHint from "@/components/ai/DailyHint";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 
@@ -163,6 +164,8 @@ export default function DailyPage() {
     };
   }, [records]);
 
+  const recentProblems = useMemo(() => records.slice(-3).map((r) => r.title), [records]);
+
   const difficultyData = useMemo(() => {
     const counts = { Easy: 0, Medium: 0, Hard: 0 };
     records.filter((r) => r.solved).forEach((r) => {
@@ -272,6 +275,10 @@ export default function DailyPage() {
         <h1 className="text-3xl font-bold gradient-text">Daily Challenge</h1>
         <p className="mt-1 text-[var(--text-secondary)]">Track streaks, solve times, and get AI hints</p>
       </motion.div>
+
+      {daily && (
+        <DailyHint topics={daily.topics} recentProblems={recentProblems} />
+      )}
 
       {daily && (
         <motion.div {...fadeUp} className="glass-card relative overflow-hidden p-6 md:p-8">

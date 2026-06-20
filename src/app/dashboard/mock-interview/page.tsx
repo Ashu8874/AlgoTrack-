@@ -25,6 +25,7 @@ import {
 import { CustomTooltip } from "@/components/charts/custom-tooltip";
 import { ChartGradients } from "@/components/charts/chart-gradients";
 import { Skeleton } from "@/components/ui/skeleton";
+import InterviewFeedback from "@/components/ai/InterviewFeedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fadeUp } from "@/lib/animations";
@@ -395,6 +396,18 @@ export default function MockInterviewPage() {
                 {feedback}
               </p>
             </motion.div>
+
+            {problem && (
+              <InterviewFeedback
+                company={effectiveCompany}
+                difficulty={difficulty}
+                problem={problem.title}
+                notes={notes}
+                score={score}
+                hintsUsed={hintsUsed}
+                duration={elapsed}
+              />
+            )}
 
             <Button onClick={resetToSetup}>
               <Play className="h-4 w-4" />

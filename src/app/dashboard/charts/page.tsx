@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth-utils";
 import { getSnapshotHistory } from "@/lib/repositories/legacy";
 import { getDashboardData } from "@/lib/leetcode";
+import ChartNarrator from "@/components/ai/ChartNarrator";
 import { DashboardCharts } from "@/features/dashboard/components/dashboard-charts";
 
 export default async function ChartsPage() {
@@ -27,6 +28,9 @@ export default async function ChartsPage() {
         topicStats={topicStats}
         snapshots={snapshots}
       />
+      <div className="mt-6">
+        <ChartNarrator chartType="Dashboard Overview" chartData={{ stats, contest, calendar, topicStats, snapshots }} />
+      </div>
     </div>
   );
 }
