@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type RevisionPriorityData = {
+  priorityList?: Array<{ title: string; slug: string; dueInDays: number; reason: string }>;
+  rankedProblems?: Array<{ title: string; slug: string; priority: number; reason: string }>;
+};
+
 export default function RevisionPriority({ dueProblems }: { dueProblems: { title: string; slug: string; dueInDays: number; }[]; }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<RevisionPriorityData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchPriority = async (refresh = false) => {
+  const fetchPriority = useCallback(async (refresh = false) => {
     setLoading(!refresh);
     setRefreshing(refresh);
     setError(null);
@@ -29,11 +34,11 @@ export default function RevisionPriority({ dueProblems }: { dueProblems: { title
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [dueProblems]);
 
   useEffect(() => {
     void fetchPriority();
-  }, [dueProblems]);
+  }, [fetchPriority]);
 
   if (loading) {
     return (
@@ -61,11 +66,13 @@ export default function RevisionPriority({ dueProblems }: { dueProblems: { title
       </div>
 
       <div className="mt-5 space-y-4">
-        {(Array.isArray(data.priorityList) ? data.priorityList : []).map((item: any, index: number) => (
+        {(Array.isArray(data?.priorityList) ? data.priorityList : data?.rankedProblems ?? []).map((item, index: number) => (
           <div key={item.slug ?? index} className="rounded-3xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-semibold text-white">{index + 1}. {item.title}</span>
-              <span className="rounded-full bg-slate-700/70 px-2 py-1 text-[11px] uppercase tracking-[0.15em] text-slate-200">Due in {item.dueInDays}d</span>
+              <span className="rounded-full bg-slate-700/70 px-2 py-1 text-[11px] uppercase tracking-[0.15em] text-slate-200">
+                {"dueInDays" in item ? `Due in ${item.dueInDays}d` : `Priority ${item.priority}`}
+              </span>
             </div>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">{item.reason}</p>
           </div>

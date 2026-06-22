@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -10,13 +10,29 @@ const verdictStyles: Record<string, string> = {
   "Would not hire": "bg-red-500/10 text-red-200",
 };
 
+type InterviewFeedbackData = {
+  interviewerVerdict?: string;
+  verdictReason?: string;
+  strengths?: string[];
+  redFlags?: string[];
+  mustStudyBefore?: string[];
+  improvedScoreRequires?: string;
+  encouragement?: string;
+  nextProblem?: { title?: string; slug?: string; reason?: string };
+  score?: number;
+  verdict?: string;
+  whatWentWell?: string;
+  whatToImprove?: string;
+  motivationalLine?: string;
+};
+
 export default function InterviewFeedback({ company, difficulty, problem, notes, score, hintsUsed, duration }: { company: string; difficulty: string; problem: string; notes: string; score: number; hintsUsed: number; duration: number; }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<InterviewFeedbackData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchFeedback = async (refresh = false) => {
+  const fetchFeedback = useCallback(async (refresh = false) => {
     setLoading(!refresh);
     setRefreshing(refresh);
     setError(null);
@@ -35,11 +51,11 @@ export default function InterviewFeedback({ company, difficulty, problem, notes,
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [company, difficulty, notes, score, hintsUsed, duration]);
 
   useEffect(() => {
     void fetchFeedback();
-  }, []);
+  }, [fetchFeedback]);
 
   if (loading) {
     return (
@@ -54,7 +70,7 @@ export default function InterviewFeedback({ company, difficulty, problem, notes,
     return <p className="text-sm text-[var(--text-muted)]">AI unavailable</p>;
   }
 
-  const verdict = data.interviewerVerdict ?? "Maybe";
+  const verdict = data?.interviewerVerdict ?? data?.verdict ?? "Maybe";
 
   return (
     <div className="glass-card rounded-3xl p-5">
@@ -71,14 +87,15 @@ export default function InterviewFeedback({ company, difficulty, problem, notes,
       <div className={`mt-5 rounded-3xl p-4 ${verdictStyles[verdict] ?? verdictStyles.Maybe}`}>
         <p className="text-sm text-white">Interviewer Verdict</p>
         <p className="mt-2 text-2xl font-bold text-white">{verdict}</p>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">{data.verdictReason}</p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">{data?.verdictReason}</p>
+        <p className="mt-2 text-xs text-[var(--text-muted)]">Problem: {problem}</p>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <div className="rounded-3xl bg-white/5 p-4">
           <p className="text-sm font-semibold text-white">Strengths</p>
           <ul className="mt-3 space-y-2 text-sm text-[var(--text-secondary)]">
-            {Array.isArray(data.strengths) ? data.strengths.map((item: string) => (
+            {Array.isArray(data?.strengths) ? data.strengths.map((item: string) => (
               <li key={item} className="flex items-start gap-2"><CheckCircle2 className="mt-1 h-4 w-4 text-emerald-400" />{item}</li>
             )) : null}
           </ul>
@@ -86,7 +103,7 @@ export default function InterviewFeedback({ company, difficulty, problem, notes,
         <div className="rounded-3xl bg-white/5 p-4">
           <p className="text-sm font-semibold text-white">Red Flags</p>
           <ul className="mt-3 space-y-2 text-sm text-[var(--text-secondary)]">
-            {Array.isArray(data.redFlags) ? data.redFlags.map((item: string) => (
+            {Array.isArray(data?.redFlags) ? data.redFlags.map((item: string) => (
               <li key={item} className="flex items-start gap-2"><XCircle className="mt-1 h-4 w-4 text-red-400" />{item}</li>
             )) : null}
           </ul>
@@ -96,7 +113,7 @@ export default function InterviewFeedback({ company, difficulty, problem, notes,
       <div className="mt-5 rounded-3xl bg-white/5 p-4">
         <p className="text-sm font-semibold text-white">Must Study Before Next Attempt</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {Array.isArray(data.mustStudyBefore) ? data.mustStudyBefore.map((topic: string) => (
+          {Array.isArray(data?.mustStudyBefore) ? data.mustStudyBefore.map((topic: string) => (
             <span key={topic} className="rounded-full bg-purple-500/10 px-3 py-1 text-sm text-purple-200">{topic}</span>
           )) : null}
         </div>
@@ -104,10 +121,10 @@ export default function InterviewFeedback({ company, difficulty, problem, notes,
 
       <div className="mt-5 rounded-3xl bg-white/5 p-4">
         <p className="text-sm font-semibold text-white">What it takes to score 90+</p>
-        <p className="mt-2 text-sm text-[var(--text-secondary)]">{data.improvedScoreRequires}</p>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">{data?.improvedScoreRequires}</p>
       </div>
 
-      <p className="mt-5 text-sm italic text-purple-300">{data.encouragement}</p>
+      <p className="mt-5 text-sm italic text-purple-300">{data?.encouragement ?? data?.motivationalLine}</p>
     </div>
   );
 }

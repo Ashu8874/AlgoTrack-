@@ -1,19 +1,28 @@
 import { NextResponse } from 'next/server'
 import BLIND75 from '../../../../lib/blind75Data'
 import ProblemProgress from '../../../../models/ProblemProgress'
-import redis from '../../../../lib/redis'
+import { getRedisClient } from '../../../../lib/redis'
 import { getAuthUser } from '../../../../lib/auth-utils'
+import type { IUser } from '../../../../models/user'
 
-export async function GET(request: Request) {
+type ProblemProgressDoc = {
+  slug: string
+  solved?: boolean
+  autoDetected?: boolean
+}
+
+export async function GET() {
   try {
     const user = await getAuthUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const username = (user as any).leetcodeUsername
+    const currentUser = user as IUser
+    const username = currentUser.leetcodeUsername
     const accepted = new Set<string>()
 
-    if (username && redis) {
+    if (username) {
       try {
+        const redis = await getRedisClient()
         const key = `lc:${username}:submissions`
         const raw = await redis.get(key)
         if (raw) {
@@ -30,7 +39,7 @@ export async function GET(request: Request) {
     // Bulk upsert auto-detected progress
     const ops = BLIND75.map(p => ({
       updateOne: {
-        filter: { user: (user as any)._id, slug: p.slug },
+        filter: { user: currentUser._id, slug: p.slug },
         update: { $set: { solved: accepted.has(p.slug), autoDetected: accepted.has(p.slug) } },
         upsert: true,
       },
@@ -45,9 +54,9 @@ export async function GET(request: Request) {
     }
 
     // Fetch current progress
-    const rows = await ProblemProgress.find({ user: (user as any)._id }).lean()
-    const map = new Map<string, any>()
-    for (const r of rows as any[]) map.set(r.slug, r)
+    const rows = (await ProblemProgress.find({ user: currentUser._id }).lean()) as unknown as ProblemProgressDoc[]
+    const map = new Map<string, ProblemProgressDoc>()
+    for (const r of rows) map.set(r.slug, r)
 
     const result = BLIND75.map(p => {
       const prog = map.get(p.slug)

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import ProblemProgress from '../../../../models/ProblemProgress'
 import { getAuthUser } from '../../../../lib/auth-utils'
+import type { IUser } from '../../../../models/user'
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,8 @@ export async function POST(request: Request) {
     const { slug, solved } = body || {}
     if (!slug || typeof solved !== 'boolean') return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
-    const filter = { user: (user as any)._id, slug }
+    const currentUser = user as IUser
+    const filter = { user: currentUser._id, slug }
     const update = { $set: { solved, autoDetected: false } }
     await ProblemProgress.updateOne(filter, update, { upsert: true })
 

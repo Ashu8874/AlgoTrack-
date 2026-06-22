@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { User } from "@/models/user";
+import { User, type IUser } from "@/models/user";
 import { buildAIContext } from "@/lib/aiContext";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     await connectDB();
-    const user = (await User.findOne({ email: session.user.email }).lean()) as any;
+    const user = await User.findOne({ email: session.user.email }).lean();
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -24,10 +24,11 @@ export async function POST(request: Request) {
     const problemTitle = String(body.problemTitle ?? "Unknown");
     const difficulty = String(body.difficulty ?? "Medium");
     const topics = Array.isArray(body.topics) ? body.topics : [];
-    const userId = (user as any)?._id?.toString?.();
+    const currentUser = user as unknown as IUser;
+    const userId = currentUser._id.toString();
 
     const context = await buildAIContext(userId);
-    const prompt = `\n${context}\n\nToday's daily challenge: "${problemTitle}" (${difficulty})\nTopics: ${topics.join(", ")}\n\nGive a personalized first hint for this user. Consider their level: they are ${user.name} based on their stats.\n\nRules:\n- Do NOT give away the solution\n- Do NOT write any code\n- Give approach direction only\n- 2-3 sentences maximum\n- Mention which of their existing strengths applies here`;
+    const prompt = `\n${context}\n\nToday's daily challenge: "${problemTitle}" (${difficulty})\nTopics: ${topics.join(", ")}\n\nGive a personalized first hint for this user. Consider their level: they are ${currentUser.name} based on their stats.\n\nRules:\n- Do NOT give away the solution\n- Do NOT write any code\n- Give approach direction only\n- 2-3 sentences maximum\n- Mention which of their existing strengths applies here`;
 
     const message = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",

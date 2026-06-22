@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 
 function levelBadge(level: string) {
   if (level === "Beginner") return "bg-blue-500/10 text-blue-200";
@@ -11,13 +10,21 @@ function levelBadge(level: string) {
   return "bg-emerald-500/10 text-emerald-200";
 }
 
+type TopicCoachData = {
+  level?: string;
+  levelReason?: string;
+  keyPattern?: string;
+  patternTip?: string;
+  nextProblems?: Array<{ title: string; slug: string; why: string }>;
+};
+
 export default function TopicCoach({ topicName, solved, acceptanceRate }: { topicName: string; solved: number; acceptanceRate: number }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<TopicCoachData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchCoach = async (refresh = false) => {
+  const fetchCoach = useCallback(async (refresh = false) => {
     setLoading(!refresh);
     setRefreshing(refresh);
     setError(null);
@@ -36,11 +43,11 @@ export default function TopicCoach({ topicName, solved, acceptanceRate }: { topi
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [topicName, solved, acceptanceRate]);
 
   useEffect(() => {
     void fetchCoach();
-  }, [topicName, solved, acceptanceRate]);
+  }, [fetchCoach]);
 
   if (loading) {
     return (
@@ -69,22 +76,22 @@ export default function TopicCoach({ topicName, solved, acceptanceRate }: { topi
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${levelBadge(data.level ?? "Beginner")}`}>
-          {data.level}
+        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${levelBadge(data?.level ?? "Beginner")}`}>
+          {data?.level}
         </span>
-        <p className="text-sm text-[var(--text-secondary)]">{data.levelReason}</p>
+        <p className="text-sm text-[var(--text-secondary)]">{data?.levelReason}</p>
       </div>
 
       <div className="mt-4 rounded-3xl bg-white/5 p-4">
         <p className="text-sm font-semibold text-white">Key Pattern</p>
-        <p className="mt-2 text-sm text-[var(--text-secondary)]">{data.keyPattern}</p>
-        <p className="mt-2 text-sm text-[var(--text-muted)]">{data.patternTip}</p>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">{data?.keyPattern}</p>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">{data?.patternTip}</p>
       </div>
 
       <div className="mt-5">
         <p className="text-sm font-semibold text-white">Next 3 Problems</p>
         <div className="mt-3 space-y-3">
-          {Array.isArray(data.nextProblems) ? data.nextProblems.map((problem: any, index: number) => (
+          {Array.isArray(data?.nextProblems) ? data.nextProblems.map((problem, index: number) => (
             <div key={problem.slug ?? index} className="rounded-3xl border border-white/10 p-4">
               <a href={`https://leetcode.com/problems/${problem.slug}/`} target="_blank" rel="noreferrer" className="font-medium text-white hover:text-purple-300">
                 {problem.title}

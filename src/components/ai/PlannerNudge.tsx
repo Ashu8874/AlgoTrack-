@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function PlannerNudge({ currentPlan, todayCompleted, streak }: { currentPlan: any[]; todayCompleted: number; streak: number; }) {
-  const [data, setData] = useState<any>(null);
+type PlannerNudgeData = {
+  onTrack?: boolean;
+  nudge?: string;
+  nudgeText?: string;
+  dailyGoals?: string[];
+  reasoning?: string;
+  problemsPerDay?: number;
+};
+
+export default function PlannerNudge({ currentPlan, todayCompleted, streak }: { currentPlan: object[]; todayCompleted: number; streak: number; }) {
+  const [data, setData] = useState<PlannerNudgeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchNudge = async (refresh = false) => {
+  const fetchNudge = useCallback(async (refresh = false) => {
     setLoading(!refresh);
     setRefreshing(refresh);
     setError(null);
@@ -29,11 +38,11 @@ export default function PlannerNudge({ currentPlan, todayCompleted, streak }: { 
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [currentPlan, todayCompleted, streak]);
 
   useEffect(() => {
     void fetchNudge();
-  }, [currentPlan, todayCompleted, streak]);
+  }, [fetchNudge]);
 
   if (loading) {
     return (
@@ -62,18 +71,18 @@ export default function PlannerNudge({ currentPlan, todayCompleted, streak }: { 
 
       <div className="mt-5 rounded-3xl bg-white/5 p-4 text-sm text-[var(--text-secondary)]">
         <p className="font-semibold text-white">Daily push</p>
-        <p className="mt-3">{data.nudgeText}</p>
+        <p className="mt-3">{data?.nudgeText ?? data?.nudge ?? "No nudge available."}</p>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {Array.isArray(data.dailyGoals) ? data.dailyGoals.map((goal: string, index: number) => (
+        {Array.isArray(data?.dailyGoals) ? data.dailyGoals.map((goal: string, index: number) => (
           <div key={index} className="rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-[var(--text-secondary)]">
             {goal}
           </div>
         )) : null}
       </div>
 
-      <p className="mt-4 text-sm italic text-purple-300">{data.reasoning}</p>
+      <p className="mt-4 text-sm italic text-purple-300">{data?.reasoning}</p>
     </div>
   );
 }

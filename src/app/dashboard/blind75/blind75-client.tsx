@@ -4,9 +4,12 @@ import ProgressHeader from '../../../components/blind75/ProgressHeader'
 import CategorySection from '../../../components/blind75/CategorySection'
 import AIAdviceCard from '../../../components/blind75/AIAdviceCard'
 import ShareCard from '../../../components/blind75/ShareCard'
+import type { Problem } from '../../../lib/blind75Data'
+
+type Blind75Progress = Problem & { solved?: boolean; autoDetected?: boolean }
 
 export default function Blind75Client() {
-  const [problems, setProblems] = useState<any[] | null>(null)
+  const [problems, setProblems] = useState<Blind75Progress[] | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -27,7 +30,7 @@ export default function Blind75Client() {
 
   if (!problems) return <div>Loading...</div>
 
-  const byCategory: Record<string, any[]> = {}
+  const byCategory: Record<string, Blind75Progress[]> = {}
   problems.forEach(p => {
     const cat = p.category || 'Other'
     if (!byCategory[cat]) byCategory[cat] = []

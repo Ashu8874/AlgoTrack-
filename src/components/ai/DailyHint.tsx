@@ -1,16 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type DailyHintData = {
+  hint?: string;
+  hintText?: string;
+  topic?: string;
+  approach?: string;
+};
+
 export default function DailyHint({ topics, recentProblems }: { topics: string[]; recentProblems: string[]; }) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DailyHintData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchHint = async (refresh = false) => {
+  const fetchHint = useCallback(async (refresh = false) => {
     setLoading(!refresh);
     setRefreshing(refresh);
     setError(null);
@@ -29,11 +36,11 @@ export default function DailyHint({ topics, recentProblems }: { topics: string[]
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [topics, recentProblems]);
 
   useEffect(() => {
     void fetchHint();
-  }, [topics, recentProblems]);
+  }, [fetchHint]);
 
   if (loading) {
     return (
@@ -62,12 +69,12 @@ export default function DailyHint({ topics, recentProblems }: { topics: string[]
 
       <div className="mt-5 rounded-3xl bg-white/5 p-4 text-sm text-[var(--text-secondary)]">
         <p className="font-semibold text-white">Your focus for today</p>
-        <p className="mt-3">{data.hintText}</p>
+        <p className="mt-3">{data?.hintText ?? data?.hint ?? "No hint available."}</p>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 text-sm text-[var(--text-secondary)]">
-        <span className="rounded-full bg-slate-700/60 px-3 py-1">Topic: {data.topic}</span>
-        <span className="rounded-full bg-slate-700/60 px-3 py-1">Approach: {data.approach}</span>
+        <span className="rounded-full bg-slate-700/60 px-3 py-1">Topic: {data?.topic ?? topics[0] ?? "General"}</span>
+        <span className="rounded-full bg-slate-700/60 px-3 py-1">Approach: {data?.approach ?? "Read the hint above"}</span>
       </div>
     </div>
   );

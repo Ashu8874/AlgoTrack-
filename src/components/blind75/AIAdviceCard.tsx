@@ -1,10 +1,18 @@
 'use client'
 import React, { useState } from 'react'
+import type { Problem } from '@/lib/blind75Data'
 
-type Props = { problems: any[] }
+type Props = { problems: Array<Problem & { solved?: boolean; autoDetected?: boolean }> }
 
 export default function AIAdviceCard({ problems }: Props) {
-  const [advice, setAdvice] = useState<any | null>(null)
+  type Advice = {
+    summary?: string
+    strengths?: string[]
+    weaknesses?: string[]
+    nextSteps?: Array<{ slug: string; reason: string }>
+  }
+
+  const [advice, setAdvice] = useState<Advice | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function loadAdvice() {
@@ -17,7 +25,7 @@ export default function AIAdviceCard({ problems }: Props) {
       })
       const data = await res.json()
       setAdvice(data.advice)
-    } catch (e) {
+    } catch {
       setAdvice({ summary: 'Failed to fetch advice' })
     } finally {
       setLoading(false)

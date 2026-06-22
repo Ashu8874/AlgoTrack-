@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 
 const severityStyles: Record<string, { border: string; badge: string }> = {
   critical: { border: "border-red-500", badge: "bg-red-500/10 text-red-300" },
@@ -17,7 +16,7 @@ export default function WeaknessAlerts({ userId }: { userId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = async (refresh = false) => {
+  const fetchData = useCallback(async (refresh = false) => {
     setLoading(!refresh);
     setRefreshing(refresh);
     setError(null);
@@ -25,7 +24,7 @@ export default function WeaknessAlerts({ userId }: { userId: string }) {
       const res = await fetch("/api/ai/weakness", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh }),
+        body: JSON.stringify({ refresh, userId }),
       });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || "AI unavailable");
@@ -36,11 +35,11 @@ export default function WeaknessAlerts({ userId }: { userId: string }) {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     void fetchData();
-  }, []);
+  }, [fetchData]);
 
   if (loading) {
     return (

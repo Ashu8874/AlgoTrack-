@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { User } from "@/models/user";
+import { User, type IUser } from "@/models/user";
 import { buildAIContext } from "@/lib/aiContext";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -26,9 +26,10 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const dueProblems = Array.isArray(body.dueProblems) ? body.dueProblems : [];
-    const targetCompany = String((body.targetCompany as string) ?? (user as any)?.targetCompany ?? "Not set");
+    const currentUser = user as unknown as IUser & { targetCompany?: string };
+    const targetCompany = String((body.targetCompany as string) ?? currentUser.targetCompany ?? "Not set");
     const daysUntilInterview = body.daysUntilInterview ?? "unknown";
-    const userId = (user as any)?._id?.toString?.();
+    const userId = currentUser._id.toString();
 
     const context = await buildAIContext(userId);
     const prompt = `\n${context}\n\nThese problems are due for revision today:\n${JSON.stringify(dueProblems)}\n\nRe-rank them by priority for a ${targetCompany} interview in ${daysUntilInterview} days.\n\nReturn ONLY this JSON:\n{\n  "rankedProblems": [\n    {\n      "slug": "...",\n      "title": "...",\n      "priority": 1,\n      "reason": "DP is your weakest area and ${targetCompany} asks it frequently"\n    }\n  ]\n}`;

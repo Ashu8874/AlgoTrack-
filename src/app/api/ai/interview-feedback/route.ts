@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { User } from "@/models/user";
+import { User, type IUser } from "@/models/user";
 import { buildAIContext } from "@/lib/aiContext";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     await connectDB();
-    const user = (await User.findOne({ email: session.user.email }).lean()) as any;
+    const user = await User.findOne({ email: session.user.email }).lean();
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -31,7 +31,8 @@ export async function POST(request: Request) {
     const score = Number(body.score ?? 0);
     const hintsUsed = Number(body.hintsUsed ?? 0);
     const duration = Number(body.duration ?? 0);
-    const userId = (user as any)?._id?.toString?.();
+    const currentUser = user as unknown as IUser;
+    const userId = currentUser._id.toString();
 
     const context = await buildAIContext(userId);
     const prompt = `\n${context}\n\nThe user just completed a mock ${company} interview.\nDifficulty: ${difficulty}\nFinal score: ${score}/100\nHints used: ${hintsUsed}\nDuration: ${duration} minutes\nUser's notes/approach: ${notes}\n\nReturn ONLY this JSON:\n{\n  "interviewerVerdict": "Would hire | Maybe | Would not hire",\n  "verdictReason": "One sentence as if you are a ${company} interviewer",\n  "strengths": ["...", "..."],\n  "redFlags": ["...", "..."],\n  "mustStudyBefore": ["topic1", "topic2", "topic3"],\n  "improvedScoreRequires": "What specifically needs to change to score 90+",\n  "encouragement": "One honest but kind closing sentence"\n}`;

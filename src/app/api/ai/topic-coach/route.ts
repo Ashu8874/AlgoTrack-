@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { User } from "@/models/user";
+import { User, type IUser } from "@/models/user";
 import { buildAIContext } from "@/lib/aiContext";
 import { getCached, setCached, invalidateCache } from "@/lib/redis";
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     await connectDB();
-    const user = (await User.findOne({ email: session.user.email }).lean()) as any;
+    const user = await User.findOne({ email: session.user.email }).lean();
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -30,7 +30,8 @@ export async function POST(request: Request) {
     const solved = Number(body.solved ?? 0);
     const acceptanceRate = Number(body.acceptanceRate ?? 0);
     const refresh = body.refresh === true;
-    const userId = (user as any)?._id?.toString?.();
+    const currentUser = user as unknown as IUser;
+    const userId = currentUser._id.toString();
     const cacheKey = `ai:topic:${userId}:${topicName}`;
 
     if (!topicName) {
@@ -41,7 +42,13 @@ export async function POST(request: Request) {
       await invalidateCache(cacheKey);
     }
 
-    const cached = await getCached<any>(cacheKey);
+    const cached = await getCached<{
+      level: string;
+      levelReason: string;
+      keyPattern: string;
+      patternTip: string;
+      nextProblems: Array<{ title: string; slug: string; why: string }>;
+    }>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }

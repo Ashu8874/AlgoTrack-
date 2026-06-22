@@ -36,7 +36,7 @@ export default function DailyBriefing() {
           throw new Error(data.error || "AI unavailable");
         }
         setBriefing(data.briefing);
-      } catch (err) {
+      } catch {
         setError("AI unavailable");
       } finally {
         setLoading(false);
@@ -120,4 +120,3 @@ export default function DailyBriefing() {
     </div>
   );
 }
-

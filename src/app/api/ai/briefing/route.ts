@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { User } from "@/models/user";
+import { User, type IUser } from "@/models/user";
 import { buildAIContext } from "@/lib/aiContext";
 import { getCached, setCached, invalidateCache } from "@/lib/redis";
 
@@ -20,12 +20,13 @@ export async function GET(request: Request) {
     }
 
     await connectDB();
-    const user = (await User.findOne({ email: session.user.email }).lean()) as any;
+    const user = await User.findOne({ email: session.user.email }).lean();
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const userId = (user as any)?._id?.toString?.();
+    const currentUser = user as unknown as IUser;
+    const userId = currentUser._id.toString();
     const dateKey = new Date().toISOString().slice(0, 10);
     const cacheKey = `ai:briefing:${userId}:${dateKey}`;
     const url = new URL(request.url);

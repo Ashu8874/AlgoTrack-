@@ -1,8 +1,9 @@
 'use client'
 import React, { useState } from 'react'
+import type { Problem } from '@/lib/blind75Data'
 
 type Props = {
-  problem: any
+  problem: Problem & { solved?: boolean; autoDetected?: boolean }
 }
 
 export default function ProblemRow({ problem }: Props) {
@@ -19,7 +20,7 @@ export default function ProblemRow({ problem }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: problem.slug, solved: newVal }),
       })
-    } catch (e) {
+    } catch {
       setSolved(!newVal)
     } finally {
       setLoading(false)

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
-import { User } from "@/models/user";
+import { User, type IUser } from "@/models/user";
 import { buildAIContext } from "@/lib/aiContext";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     await connectDB();
-    const user = (await User.findOne({ email: session.user.email }).lean()) as any;
+    const user = await User.findOne({ email: session.user.email }).lean();
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -23,7 +23,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const chartType = String(body.chartType ?? "daily");
     const chartData = body.chartData ?? {};
-    const userId = (user as any)?._id?.toString?.();
+    const currentUser = user as unknown as IUser;
+    const userId = currentUser._id.toString();
     const context = await buildAIContext(userId);
 
     let prompt = "";

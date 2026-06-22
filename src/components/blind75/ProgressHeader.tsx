@@ -1,7 +1,8 @@
 'use client'
 import React from 'react'
+import type { Problem } from '@/lib/blind75Data'
 
-type Props = { problems: any[] }
+type Props = { problems: Array<Problem & { solved?: boolean }> }
 
 export default function ProgressHeader({ problems }: Props) {
   const total = problems.length

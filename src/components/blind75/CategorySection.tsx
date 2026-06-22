@@ -1,10 +1,11 @@
 'use client'
 import React from 'react'
+import type { Problem } from '@/lib/blind75Data'
 import ProblemRow from './ProblemRow'
 
 type Props = {
   title: string
-  problems: any[]
+  problems: Array<Problem & { solved?: boolean; autoDetected?: boolean }>
 }
 
 export default function CategorySection({ title, problems }: Props) {

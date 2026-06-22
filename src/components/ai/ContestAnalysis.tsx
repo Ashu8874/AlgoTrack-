@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,13 +11,25 @@ const trendStyles: Record<string, string> = {
   stable: "bg-sky-500/10 text-sky-200",
 };
 
-export default function ContestAnalysis({ contestHistory }: { contestHistory: any[] }) {
-  const [data, setData] = useState<any>(null);
+type ContestHistoryEntry = {
+  attended?: boolean | null;
+};
+
+type ContestAnalysisData = {
+  trend?: string;
+  trendReason?: string;
+  tips?: string[];
+  nextContestGoal?: string;
+  ratingPrediction?: string;
+};
+
+export default function ContestAnalysis({ contestHistory }: { contestHistory: ContestHistoryEntry[] }) {
+  const [data, setData] = useState<ContestAnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchAnalysis = async (refresh = false) => {
+  const fetchAnalysis = useCallback(async (refresh = false) => {
     setLoading(!refresh);
     setRefreshing(refresh);
     setError(null);
@@ -36,11 +48,11 @@ export default function ContestAnalysis({ contestHistory }: { contestHistory: an
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [contestHistory]);
 
   useEffect(() => {
     void fetchAnalysis();
-  }, [contestHistory]);
+  }, [fetchAnalysis]);
 
   if (loading) {
     return (
@@ -55,7 +67,7 @@ export default function ContestAnalysis({ contestHistory }: { contestHistory: an
     return <p className="text-sm text-[var(--text-muted)]">AI unavailable</p>;
   }
 
-  const trend = data.trend ?? "stable";
+  const trend = data?.trend ?? "stable";
 
   return (
     <div className="glass-card rounded-3xl p-5">
@@ -70,10 +82,10 @@ export default function ContestAnalysis({ contestHistory }: { contestHistory: an
       </div>
 
       <div className={`mt-5 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${trendStyles[trend] ?? trendStyles.stable}`}>{trend}</div>
-      <p className="mt-3 text-sm text-[var(--text-secondary)]">{data.trendReason}</p>
+      <p className="mt-3 text-sm text-[var(--text-secondary)]">{data?.trendReason}</p>
 
       <div className="mt-5 space-y-3">
-        {(Array.isArray(data.tips) ? data.tips : []).map((tip: string, index: number) => (
+        {(Array.isArray(data?.tips) ? data.tips : []).map((tip: string, index: number) => (
           <div key={index} className="rounded-3xl bg-white/5 p-4 text-sm text-[var(--text-secondary)]">
             <span className="font-semibold text-white">{index + 1}.</span> {tip}
           </div>
@@ -82,10 +94,10 @@ export default function ContestAnalysis({ contestHistory }: { contestHistory: an
 
       <div className="mt-5 rounded-3xl bg-white/5 p-4">
         <p className="text-sm font-semibold text-white">Next contest goal</p>
-        <p className="mt-2 text-sm text-[var(--text-secondary)]">{data.nextContestGoal}</p>
+        <p className="mt-2 text-sm text-[var(--text-secondary)]">{data?.nextContestGoal}</p>
       </div>
 
-      <p className="mt-4 italic text-purple-300">{data.ratingPrediction}</p>
+      <p className="mt-4 italic text-purple-300">{data?.ratingPrediction}</p>
     </div>
   );
 }
